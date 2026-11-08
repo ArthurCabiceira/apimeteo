@@ -1,0 +1,272 @@
+:root {
+    color-scheme: dark;
+    font-family: Inter, "Segoe UI", sans-serif;
+    color: #eef4ff;
+    background: #0b1324;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    min-width: 320px;
+    min-height: 100vh;
+    margin: 0;
+    background:
+        radial-gradient(ellipse at 50% 0%, rgba(35, 91, 135, 0.26), transparent 56%),
+        #0b1324;
+}
+
+.page {
+    display: grid;
+    min-height: 100vh;
+    padding: 32px 20px;
+    place-items: center;
+}
+
+.location-card {
+    width: min(100%, 620px);
+    padding: clamp(26px, 6vw, 48px);
+    border: 1px solid rgba(164, 190, 225, 0.16);
+    border-radius: 22px;
+    background: rgba(17, 29, 49, 0.92);
+    box-shadow: 0 28px 80px rgba(0, 0, 0, 0.32);
+}
+
+.eyebrow,
+.result-label {
+    color: #70d7c1;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+}
+
+.eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #70d7c1;
+    box-shadow: 0 0 12px rgba(112, 215, 193, 0.7);
+}
+
+h1 {
+    margin: 22px 0 10px;
+    font-size: clamp(2rem, 6vw, 2.8rem);
+    letter-spacing: -0.045em;
+}
+
+.intro {
+    margin: 0 0 30px;
+    color: #a9b8cb;
+    line-height: 1.6;
+}
+
+label {
+    display: block;
+    margin-bottom: 9px;
+    color: #d7e1ef;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.search-row {
+    display: flex;
+    gap: 10px;
+}
+
+input {
+    min-width: 0;
+    flex: 1;
+    padding: 13px 15px;
+    border: 1px solid #34445c;
+    border-radius: 10px;
+    outline: none;
+    background: #0d182a;
+    color: #eef4ff;
+    font: inherit;
+}
+
+input::placeholder {
+    color: #718198;
+}
+
+input:focus {
+    border-color: #70d7c1;
+    box-shadow: 0 0 0 3px rgba(112, 215, 193, 0.13);
+}
+
+button {
+    padding: 0 18px;
+    border: 0;
+    border-radius: 10px;
+    background: #70d7c1;
+    color: #09201e;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 700;
+    transition: background 150ms ease, opacity 150ms ease;
+}
+
+button:hover {
+    background: #8be5d2;
+}
+
+button:disabled {
+    cursor: wait;
+    opacity: 0.65;
+}
+
+.message {
+    min-height: 24px;
+    margin: 16px 0 0;
+    color: #a9b8cb;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.message.success {
+    color: #70d7c1;
+}
+
+.message.error {
+    color: #ff9a9a;
+}
+
+.result {
+    margin-top: 24px;
+    padding: 22px;
+    border: 1px solid rgba(112, 215, 193, 0.23);
+    border-radius: 14px;
+    background: rgba(9, 22, 36, 0.7);
+}
+
+.result-heading {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+}
+
+.pin {
+    display: grid;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    place-items: center;
+    background: rgba(112, 215, 193, 0.12);
+    color: #70d7c1;
+    font-size: 1.7rem;
+}
+
+.result-label {
+    margin: 0 0 5px;
+    font-size: 0.65rem;
+}
+
+.result h2 {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.coordinates {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.forecast {
+    margin-top: 22px;
+}
+
+.forecast-values {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.coordinate {
+    padding: 14px;
+    border-radius: 10px;
+    background: #14243a;
+}
+
+.coordinate span {
+    display: block;
+    margin-bottom: 7px;
+    color: #a9b8cb;
+    font-size: 0.8rem;
+}
+
+.coordinate strong {
+    font-size: 1.1rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.gateway-note {
+    margin: 28px 0 0;
+    color: #8192aa;
+    font-size: 0.78rem;
+}
+
+code {
+    color: #b6c8de;
+}
+
+.section-divider {
+    height: 1px;
+    margin: 30px 0 24px;
+    background: rgba(164, 190, 225, 0.16);
+}
+
+.separate-forecast h2 {
+    margin: 0 0 8px;
+    font-size: 1.15rem;
+}
+
+.separate-forecast .intro {
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+}
+
+.coordinate-inputs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.coordinate-inputs input {
+    width: 100%;
+}
+
+.forecast-button {
+    min-height: 46px;
+    margin-top: 16px;
+}
+
+.direct-result {
+    margin-top: 8px;
+}
+
+@media (max-width: 520px) {
+    .search-row {
+        flex-direction: column;
+    }
+
+    .coordinate-inputs {
+        grid-template-columns: 1fr;
+    }
+
+    button {
+        min-height: 46px;
+    }
+}

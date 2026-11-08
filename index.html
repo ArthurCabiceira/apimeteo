@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0b1324">
+    <title>Consulta de localização | Meteo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <main class="page">
+        <section class="location-card" aria-labelledby="page-title">
+            <div class="eyebrow"><span class="status-dot"></span> API METEO · PREVISÃO</div>
+            <h1 id="page-title">Previsão para sua cidade</h1>
+            <p class="intro">Busque uma cidade e consulte a previsão atual através dos microserviços conectados ao gateway.</p>
+
+            <form id="search-form">
+                <label for="city-input">Nome da cidade</label>
+                <div class="search-row">
+                    <input id="city-input" name="city" type="text" placeholder="Ex.: Lisboa" autocomplete="address-level2" required>
+                    <button type="submit">Ver previsão</button>
+                </div>
+            </form>
+
+            <p id="message" class="message" role="status" aria-live="polite">Digite uma cidade para consultar sua localização.</p>
+
+            <section id="location-result" class="result" aria-live="polite" hidden>
+                <div class="result-heading">
+                    <span class="pin" aria-hidden="true">⌖</span>
+                    <div>
+                        <p class="result-label">LOCALIZAÇÃO ENCONTRADA</p>
+                        <h2 id="city-name"></h2>
+                    </div>
+                </div>
+                <div class="coordinates">
+                    <div class="coordinate">
+                        <span>Latitude</span>
+                        <strong id="latitude"></strong>
+                    </div>
+                    <div class="coordinate">
+                        <span>Longitude</span>
+                        <strong id="longitude"></strong>
+                    </div>
+                </div>
+                <div class="forecast">
+                    <p class="result-label">CONDIÇÕES ATUAIS</p>
+                    <div class="forecast-values">
+                        <div class="coordinate">
+                            <span>Temperatura</span>
+                            <strong id="temperature"></strong>
+                        </div>
+                        <div class="coordinate">
+                            <span>Vento</span>
+                            <strong id="wind-speed"></strong>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="separate-forecast" aria-labelledby="coordinates-title">
+                <div class="section-divider"></div>
+                <h2 id="coordinates-title">Consultar forecast por coordenadas</h2>
+                <p class="intro">Consulte o microserviço de previsão diretamente, sem buscar a cidade.</p>
+                <form id="forecast-form">
+                    <div class="coordinate-inputs">
+                        <div>
+                            <label for="latitude-input">Latitude</label>
+                            <input id="latitude-input" name="latitude" type="number" min="-90" max="90" step="any" placeholder="Ex.: 38.7223" required>
+                        </div>
+                        <div>
+                            <label for="longitude-input">Longitude</label>
+                            <input id="longitude-input" name="longitude" type="number" min="-180" max="180" step="any" placeholder="Ex.: -9.1393" required>
+                        </div>
+                    </div>
+                    <button class="forecast-button" type="submit">Consultar forecast</button>
+                </form>
+                <p id="forecast-message" class="message" role="status" aria-live="polite">Informe as coordenadas para consultar a previsão.</p>
+                <div id="direct-forecast-result" class="forecast direct-result" aria-live="polite" hidden>
+                    <p class="result-label">CONDIÇÕES ATUAIS</p>
+                    <div class="forecast-values">
+                        <div class="coordinate">
+                            <span>Temperatura</span>
+                            <strong id="direct-temperature"></strong>
+                        </div>
+                        <div class="coordinate">
+                            <span>Vento</span>
+                            <strong id="direct-wind-speed"></strong>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <p class="gateway-note">As consultas são encaminhadas pelo gateway para os microserviços.</p>
+        </section>
+    </main>
+    <script>
+        const form = document.querySelector("#search-form");
+        const input = document.querySelector("#city-input");
+        const message = document.querySelector("#message");
+        const result = document.querySelector("#location-result");
+        const submitButton = form.querySelector("button");
+        const forecastForm = document.querySelector("#forecast-form");
+        const forecastMessage = document.querySelector("#forecast-message");
+        const directForecastResult = document.querySelector("#direct-forecast-result");
+        const forecastButton = forecastForm.querySelector("button");
+        
+        async function readResponse(response) {
+            const body = await response.text();
+            let data;
+            try {
+                data = JSON.parse(body);
+            } catch {
+                const detail = body.trim();
+                throw new Error(detail
+                    ? `O serviço respondeu com conteúdo inesperado: ${detail.slice(0, 120)}`
+                    : `O serviço respondeu com status ${response.status}.`);
+            }
+
+            if (!response.ok) {
+                throw new Error(data.erro || data.error || `A consulta falhou (HTTP ${response.status}).`);
+            }
+            return data;
+        }
+
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const cityQuery = input.value.trim();
+            if (!cityQuery) return;
+
+            result.hidden = true;
+            message.textContent = "Localizando a cidade...";
+            message.className = "message";
+            submitButton.disabled = true;
+
+            try {
+                const locationResponse = await fetch(`/api/geocoding?name=${encodeURIComponent(cityQuery)}`);
+                const data = await readResponse(locationResponse);
+
+                const location = Array.isArray(data) ? data[0] : (data.results?.[0] ?? data.result ?? data);
+                const cityName = location?.name ?? location?.city;
+                const latitude = Number(location?.latitude);
+                const longitude = Number(location?.longitude);
+                if (!cityName || !Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+                    throw new Error("A resposta do serviço não contém cidade, latitude e longitude.");
+                }
+
+                const place = [cityName, location.admin1, location.country].filter(Boolean).join(", ");
+                document.querySelector("#city-name").textContent = place;
+                document.querySelector("#latitude").textContent = latitude.toFixed(5);
+                document.querySelector("#longitude").textContent = longitude.toFixed(5);
+                result.hidden = false;
+                message.textContent = "Cidade localizada. Buscando a previsão...";
+
+                const forecastResponse = await fetch(
+                    `/api/forecast?latitude=${encodeURIComponent(latitude)}&longitude=${encodeURIComponent(longitude)}`
+                );
+                const forecast = await readResponse(forecastResponse);
+                const current = forecast.current;
+                if (!current || !Number.isFinite(Number(current.temperature_2m)) || !Number.isFinite(Number(current.wind_speed_10m))) {
+                    throw new Error("A resposta do forecast não contém as condições atuais.");
+                }
+
+                document.querySelector("#temperature").textContent =
+                    `${current.temperature_2m} ${forecast.current_units?.temperature_2m ?? "°C"}`;
+                document.querySelector("#wind-speed").textContent =
+                    `${current.wind_speed_10m} ${forecast.current_units?.wind_speed_10m ?? "km/h"}`;
+                message.textContent = "Previsão carregada com sucesso.";
+                message.className = "message success";
+            } catch (error) {
+                message.textContent = error instanceof TypeError
+                    ? "Não foi possível conectar ao gateway. Verifique se os serviços estão ativos."
+                    : error.message;
+                message.className = "message error";
+            } finally {
+                submitButton.disabled = false;
+            }
+        });
+
+        forecastForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            if (!forecastForm.reportValidity()) return;
+
+            const latitude = Number(forecastForm.elements.latitude.value);
+            const longitude = Number(forecastForm.elements.longitude.value);
+            if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+                forecastMessage.textContent = "Latitude deve estar entre -90 e 90; longitude, entre -180 e 180.";
+                forecastMessage.className = "message error";
+                return;
+            }
+
+            directForecastResult.hidden = true;
+            forecastMessage.textContent = "Consultando o microserviço de forecast...";
+            forecastMessage.className = "message";
+            forecastButton.disabled = true;
+
+            try {
+                const response = await fetch(
+                    `/api/forecast?latitude=${encodeURIComponent(latitude)}&longitude=${encodeURIComponent(longitude)}`
+                );
+                const forecast = await readResponse(response);
+                const current = forecast.current;
+                if (!current || !Number.isFinite(Number(current.temperature_2m)) || !Number.isFinite(Number(current.wind_speed_10m))) {
+                    throw new Error("A resposta do forecast não contém as condições atuais.");
+                }
+
+                document.querySelector("#direct-temperature").textContent =
+                    `${current.temperature_2m} ${forecast.current_units?.temperature_2m ?? "°C"}`;
+                document.querySelector("#direct-wind-speed").textContent =
+                    `${current.wind_speed_10m} ${forecast.current_units?.wind_speed_10m ?? "km/h"}`;
+                directForecastResult.hidden = false;
+                forecastMessage.textContent = "Previsão carregada com sucesso.";
+                forecastMessage.className = "message success";
+            } catch (error) {
+                forecastMessage.textContent = error instanceof TypeError
+                    ? "Não foi possível conectar ao gateway. Verifique se os serviços estão ativos."
+                    : error.message;
+                forecastMessage.className = "message error";
+            } finally {
+                forecastButton.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
