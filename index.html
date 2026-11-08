@@ -89,6 +89,14 @@
                     </div>
                 </div>
             </section>
+            
+            <section class="search-history" aria-labelledby="search-history-title" aria-live="polite">
+                <h2 id="search-history-title">Cidades consultadas</h2>
+                <ul id="city-list" class="city-list" >
+                    <li>Nenhuma cidade consultada ainda.</li>
+                </ul>
+            </section>
+
             <p class="gateway-note">As consultas são encaminhadas pelo gateway para os microserviços.</p>
         </section>
     </main>
@@ -97,12 +105,22 @@
         const input = document.querySelector("#city-input");
         const message = document.querySelector("#message");
         const result = document.querySelector("#location-result");
+        const cityList = document.querySelector("#city-list");
         const submitButton = form.querySelector("button");
         const forecastForm = document.querySelector("#forecast-form");
         const forecastMessage = document.querySelector("#forecast-message");
         const directForecastResult = document.querySelector("#direct-forecast-result");
         const forecastButton = forecastForm.querySelector("button");
-        
+        var contagem_do_citylist = 1;
+        function addCityToHistory(city) {
+            if (cityList.firstElementChild?.textContent === "Nenhuma cidade consultada ainda.") {
+                cityList.replaceChildren();
+            }
+            const item = document.createElement("li");
+            item.textContent = contagem_do_citylist + ". " + city;
+            cityList.appendChild(item);
+            contagem_do_citylist++;
+        }
         async function readResponse(response) {
             const body = await response.text();
             let data;
@@ -144,6 +162,7 @@
                 }
 
                 const place = [cityName, location.admin1, location.country].filter(Boolean).join(", ");
+                addCityToHistory(place);
                 document.querySelector("#city-name").textContent = place;
                 document.querySelector("#latitude").textContent = latitude.toFixed(5);
                 document.querySelector("#longitude").textContent = longitude.toFixed(5);
